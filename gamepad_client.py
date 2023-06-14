@@ -11,13 +11,12 @@ pygame.joystick.init()
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
 
-
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Connect the socket to the port where the server is listening
-server_address = ('192.168.1.64', 10001)
-print('connecting to {} port {}'.format(*server_address))
+server_address = ('192.168.1.64', 10000)
+print('Connecting to {} port {}'.format(*server_address))
 try:
     sock.connect(server_address)
 except ConnectionRefusedError:
@@ -37,7 +36,7 @@ if joystick_count == 0:
     print('No joystick found. Please connect a joystick and try again.')
     exit()
 
-# init joystick
+# Init joystick
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
 
@@ -46,11 +45,12 @@ joystick_name = joystick.get_name()
 print('Connected to ' + joystick_name)
 
 while True:
-     # Check for events
+    # Check for events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+
     try:
         # Get the axis values from joystick 1
         axis0_1 = joystick.get_axis(0)
@@ -74,21 +74,6 @@ while True:
         back_button = joystick.get_button(6)
         start_button = joystick.get_button(7)
 
-        # Print the axis values
-        #print("Joystick 1 - Axis 0:", axis0_1)
-        #print("Joystick 1 - Axis 1:", axis1_1)
-        #print("Joystick 2 - Axis 2:", axis0_2)
-        #print("Joystick 2 - Axis 3:", axis1_2)
-        #print("LT:", lt)
-        #print("RT:", rt)
-        #print("A button:", a_button)
-        #print("B button:", b_button)
-        #print("X button:", x_button)
-        #print("Y button:", y_button)
-        #print("LB button:", lb_button)
-        #print("RB button:", rb_button)
-        #print("Back button:", back_button)
-        #print("Start button:", start_button)
         # Create a dictionary with the joystick inputs
         joystick_data = {
             'axis0_1': axis0_1,
@@ -112,6 +97,16 @@ while True:
 
         # Send the JSON string to the server
         sock.sendall(joystick_json.encode())
+
+        # Always display the "Type command:" prompt
+        user_input = input("server command:")
+        # Send the user input to the server
+        sock.sendall(user_input.encode())
+
+        # Receive messages from the server
+        response = sock.recv(5000)
+        if response:
+            print('Received from server:', response.decode())
 
         # Wait for a short time before sending the next update
         time.sleep(0.1)
